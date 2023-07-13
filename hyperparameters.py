@@ -1,10 +1,9 @@
 '''
 Hyperparameters
 '''
+past_years = 45
 past_history = 60
-lstm_units = 100
-batch_size = 64
-epochs = 300
-dropout = 0.2
-forward_look = 20
-timestep = 2
+lstm_units = 30
+batch_size = 128
+epochs = 100
+forward_look = 200
