@@ -10,15 +10,16 @@ from tensorflow.keras.regularizers import l2
 Single-layer model implementation for predicting future stock prices
 '''
 
-def create_model(shape):
+def create_model(shape, l2_lambda=0.01):
     model = Sequential()
     model.add(LSTM(lstm_units, input_shape=shape, return_sequences=True))
     model.add(Dropout(dropout))
     model.add(LSTM(lstm_units, return_sequences=True))
     model.add(Dropout(dropout))
-    model.add(LSTM(lstm_units))
-    model.add(Dense(1))
+    model.add(LSTM(lstm_units, return_sequences=False))  # Set return_sequences=False
+    model.add(Dense(forward_look))
     return model
+
     
 '''
 Loss Function - Mean Squared Error

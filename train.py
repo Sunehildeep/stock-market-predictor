@@ -6,59 +6,80 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.callbacks import EarlyStopping
 
-# Normalize the data frame which contains stock prices vs dates
+# Normalize the data
 scaler = MinMaxScaler(feature_range=(0, 1))
-stock_prices = scaler.fit_transform(stock_prices.reshape(-1, 2))
+stock_prices = scaler.fit_transform(stock_prices.reshape(-1, 1))
+
+# Function to create the dataset
+def create_dataset(dataset, past_history):
+    X, y = [], []
+    for i in range(len(dataset) -past_history - 1):
+        X.append(dataset[i:i+past_history, 0])
+        y.append(dataset[i+past_history, 0])
+    return np.array(X), np.array(y)
+
+# Split the dataset int
+# o train and test sets
+train_size = int(len(stock_prices) * 0.65)
+test_size = len(stock_prices) - train_size
+train, test = stock_prices[0:train_size,:], stock_prices[train_size:len(stock_prices),:]
 
 # Create the dataset
-def create_dataset(stock_prices, past_history=100, forward_look=1):
-    X = []
-    y = []
-    for i in range(len(stock_prices) - past_history - forward_look + 1):
-        X.append(stock_prices[i:i+past_history, :])  # Use all features for X
-        y.append(stock_prices[i+past_history:i+past_history+forward_look, 0])  # Use only the first feature for y
+X_train, y_train = create_dataset(train, past_history)
+X_test, y_test = create_dataset(test, past_history)
 
-    X = np.array(X)
-    y = np.array(y)
-
-    return X, y
-
-
-# Split the dataset into train and test sets
-train_size = int(len(stock_prices) * 0.55)
-test_size = len(stock_prices) - train_size
-train, test = stock_prices[0:train_size, :], stock_prices[train_size:len(stock_prices), :]
-
-# Create the dataset for train and test
-X_train, y_train = create_dataset(train, past_history=past_history, forward_look=forward_look)
-X_test, y_test = create_dataset(test, past_history=past_history, forward_look=forward_look)
-
+# Reshape the data
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
 # Create the model
-model = create_model((X_train.shape[1], X_train.shape[2]))
+model = create_model((X_train.shape[1], 1))
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=20, verbose=1)
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1)
 
-optimizer = tf.keras.optimizers.Adam(0.003)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.002)
 
 # Compile the model
-model.compile(optimizer=optimizer, loss=loss)
+model.compile(optimizer='adam', loss=loss)
 
-model.summary()
 
 # Train the model
 model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, y_test), callbacks=[early_stopping])
 
-predictions = []
+'''
+Test if graph matches
+'''
+#Plot graph for x_test actual and predicted values
+y_pred = model.predict(X_test)
 
+#Dense gives out forward_look number of values
+#Convert back to original scale
+y_pred = scaler.inverse_transform(y_pred[:,:])
+
+y_test = y_test[len(y_test)-forward_look:]
+
+#Plot the graph
+plt.figure(figsize=(10, 5))
+plt.plot(np.arange(len(y_test)), scaler.inverse_transform(y_test.reshape(-1, 1)), label='Actual', color='blue')
+plt.plot(np.arange(len(y_test)), y_pred, label='Predicted', color='orange')
+plt.xlabel('Time')
+plt.ylabel('Stock Price')
+plt.title('Stock Price vs Time')
+plt.legend()
+plt.show()
+
+'''
+Future Prediction
+'''
+predictions = []
 
 # Predict the next future 200 days
 for i in range(forward_look):
     if i < X_test.shape[0]:
-        y_pred = model.predict(X_test[i,:,:].reshape(1,X_test.shape[1],X_test.shape[2]))[0][0]
+        y_pred = model.predict(X_test[i,:].reshape(1,X_test.shape[1],X_test.shape[2]))[0][0]
     else:
         # Use previous prediction as input for the next prediction
-        y_pred = model.predict(X_test[-1,:,:].reshape(1,X_test.shape[1],X_test.shape[2]))[0][0]
+        y_pred = model.predict(X_test[-1,:].reshape(1,X_test.shape[1],X_test.shape[2]))[0][0]
         X_test = np.append(X_test, y_pred.reshape(1, 1, 1))
         X_test = X_test[1:].reshape(-1, past_history, 1)
     predictions.append(y_pred)
@@ -92,6 +113,8 @@ y_test_reshaped = y_test_reshaped[len(y_test_reshaped)-len(predictions):].reshap
 plt.figure(figsize=(10, 5))
 plt.plot(np.arange(len(y_test_reshaped)), scaler.inverse_transform(y_test_reshaped).reshape(-1, 1), label='Actual', color='blue')
 plt.plot(np.arange(len(y_test_reshaped), len(y_test_reshaped) + len(predictions)), predictions, label='Predicted', color='orange')
+#Invert the predictions
+# plt.plot(np.arange(len(y_test_reshaped), len(y_test_reshaped) + len(predictions)), -predictions, label='Inverted Predicted', color='green')
 plt.xlabel('Time')
 plt.ylabel('Stock Price')
 plt.title('Stock Price vs Time')

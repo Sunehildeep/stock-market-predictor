@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ticker = 'TTWO'
+ticker = 'GOOGL'
 msft = yf.Ticker(ticker)
 company_name = msft.info['shortName']
 
@@ -42,7 +42,7 @@ stock_dates = yahoo_data.index.values
 stock_dates = [datetime.utcfromtimestamp(date.astype('O')/1e9) for date in stock_dates]
 
 #Add another feature to stock_prices which is the google trends data
-stock_prices = np.column_stack((stock_prices, yahoo_data['Low'].values))
+# stock_prices = np.column_stack((stock_prices, yahoo_data['Low'].values))
 
 # Get data till 6 months before from the datetime object of stock_dates
 date_6_months_before = stock_dates[-1] - timedelta(days=180)
