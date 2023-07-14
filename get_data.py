@@ -4,10 +4,11 @@ from pytrends import dailydata
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
-ticker = 'GOOGL'
+ticker = 'TTWO'
 msft = yf.Ticker(ticker)
-# company_name = msft.info['shortName']
+company_name = msft.info['shortName']
 
 t_now = datetime.now()
 t_prev = t_now - timedelta(days=past_years * 365)
@@ -20,13 +21,7 @@ yahoo_data = yf.download(ticker, start=t_prev, end=t_now, progress=False)
 Plot - Just for visualization
 '''
 # Plot the stock price
-# plt.figure(figsize=(10, 5))
-# plt.plot(yahoo_data['Close'].values, label='Stock Price')
-# plt.xlabel('Time')
-# plt.ylabel('Stock Price')
-# plt.title('Stock Price vs Time')
-# plt.legend()
-# plt.show()
+
 
 # # Plot the google trends data
 # plt.figure(figsize=(10, 5))
@@ -41,3 +36,15 @@ Plot - Just for visualization
 # Extract the relevant data
 print(yahoo_data.columns)
 stock_prices = yahoo_data['Adj Close'].values
+#Get stock_dates which is the index of the dataframe
+stock_dates = yahoo_data.index.values
+#Convert them to datetime objects
+stock_dates = [datetime.utcfromtimestamp(date.astype('O')/1e9) for date in stock_dates]
+
+#Add another feature to stock_prices which is the google trends data
+stock_prices = np.column_stack((stock_prices, yahoo_data['Low'].values))
+
+# Get data till 6 months before from the datetime object of stock_dates
+date_6_months_before = stock_dates[-1] - timedelta(days=180)
+
+# dataframe = pd.DataFrame({'Date':stock_dates, 'Stock Price':stock_prices})

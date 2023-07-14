@@ -3,6 +3,8 @@ from hyperparameters import *
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation
 import numpy as np
+from tensorflow.keras.regularizers import l2
+
 
 '''
 Single-layer model implementation for predicting future stock prices
@@ -11,7 +13,9 @@ Single-layer model implementation for predicting future stock prices
 def create_model(shape):
     model = Sequential()
     model.add(LSTM(lstm_units, input_shape=shape, return_sequences=True))
+    model.add(Dropout(dropout))
     model.add(LSTM(lstm_units, return_sequences=True))
+    model.add(Dropout(dropout))
     model.add(LSTM(lstm_units))
     model.add(Dense(1))
     return model
