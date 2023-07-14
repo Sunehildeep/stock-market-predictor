@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 
-ticker = 'AAPL'
+ticker = 'GOOGL'
 msft = yf.Ticker(ticker)
-company_name = msft.info['shortName']
+# company_name = msft.info['shortName']
 
 t_now = datetime.now()
 t_prev = t_now - timedelta(days=past_years * 365)

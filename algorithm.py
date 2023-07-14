@@ -17,12 +17,10 @@ def make_decision(c):
     # delta = 2: sell
     # delta = 0: hold
     # delta = -2: buy
-    decision = np.zeros(len(delta))
-
-    # Change to string
-    decision = decision.astype(str)
-    decision[decision == '2'] = 'sell'
-    decision[decision == '0'] = 'hold'
-    decision[decision == '-2'] = 'buy'
-
+    if delta[-1] == 2:
+        decision = 'sell'
+    elif delta[-1] == 0:
+        decision = 'hold'
+    else:
+        decision = 'buy'
     return decision
